@@ -1,0 +1,29 @@
+rm -rf cpu_vdu
+mkdir cpu_vdu
+cat Top\ Pod\ with-VDU.txt | awk '{printf $2": " $3"\n"}' | yq 'to_entries[] | "dd if=/dev/zero of=cpu_vdu/\(.key) bs=1024 count=\(.value[:-1] | tonumber)"' -r | sh
+duc index cpu_vdu
+duc graph cpu_vdu --format=svg --gradient --palette=size --output=cpu_vdu.svg --dpi=120 --fuzz=0.3 --size=1000
+
+rm -rf mem_vdu
+mkdir mem_vdu
+cat Top\ Pod\ with-VDU.txt | awk '{printf $2": " $4"\n"}' | yq 'to_entries[] | "dd if=/dev/zero of=mem_vdu/\(.key) bs=1024 count=\(.value[:-2] | tonumber)"' -r | sh
+duc index mem_vdu
+duc graph mem_vdu --format=svg --gradient --palette=size --output=mem_vdu.svg --dpi=120 --fuzz=0.3 --size=1000
+
+rm -rf cpu_non_vdu
+mkdir cpu_non_vdu
+cat Top\ pod\ non-vdu.txt | awk '{printf $2": " $3"\n"}' | yq 'to_entries[] | "dd if=/dev/zero of=cpu_non_vdu/\(.key) bs=1024 count=\(.value[:-1] | tonumber)"' -r | sh
+duc index cpu_non_vdu
+duc graph cpu_non_vdu --format=svg --gradient --palette=size --output=cpu_non_vdu.svg --dpi=120 --fuzz=0.3 --size=1000
+
+rm -rf mem_non_vdu
+mkdir mem_non_vdu
+cat Top\ pod\ non-vdu.txt | awk '{printf $2": " $4"\n"}' | yq 'to_entries[] | "dd if=/dev/zero of=mem_non_vdu/\(.key) bs=1024 count=\(.value[:-2] | tonumber)"' -r | sh
+duc index mem_non_vdu
+duc graph mem_non_vdu --format=svg --gradient --palette=size --output=mem_non_vdu.svg --dpi=120 --fuzz=0.3 --size=1000
+
+google-chrome \
+    file://$PWD/cpu_non_vdu.svg \
+    file://$PWD/cpu_vdu.svg \
+    file://$PWD/mem_non_vdu.svg \
+    file://$PWD/mem_vdu.svg
